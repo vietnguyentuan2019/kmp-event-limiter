@@ -2,6 +2,7 @@
 .gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar
+.kotlin/
 
 # IDE
 .idea/
@@ -10,3 +11,20 @@ build/
 
 # Local
 local.properties
+
+# AI Assistant
+.claude/
+SESSION_SUMMARY.md
+
+# Memory dumps
+*.hprof
+
+# macOS
+.DS_Store
+
+# Xcode
+*.xcuserdata
+*.xcworkspace/xcuserdata/
+DerivedData/
+*.xccheckout
+*.moved-aside
