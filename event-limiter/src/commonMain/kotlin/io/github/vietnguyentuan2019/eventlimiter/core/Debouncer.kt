@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -52,7 +53,7 @@ class Debouncer(
      * Execute with custom duration for this specific call.
      */
     fun callWithDuration(callback: () -> Unit, customDuration: Duration) {
-        val callTime = System.currentTimeMillis()
+        val callTime = Clock.System.now().toEpochMilliseconds()
 
         // Skip debounce if disabled
         if (!enabled) {
@@ -73,7 +74,7 @@ class Debouncer(
 
         debounceJob = scope.launch {
             delay(customDuration)
-            val totalWaitTime = (System.currentTimeMillis() - callTime).milliseconds
+            val totalWaitTime = (Clock.System.now().toEpochMilliseconds() - callTime).milliseconds
             debugLog("Debounce executed after ${totalWaitTime.inWholeMilliseconds}ms")
             executeCallback(callback, callTime, cancelled = false)
         }
@@ -84,7 +85,7 @@ class Debouncer(
 
         try {
             callback()
-            val totalTime = (System.currentTimeMillis() - callTime).milliseconds
+            val totalTime = (Clock.System.now().toEpochMilliseconds() - callTime).milliseconds
             onMetrics?.invoke(totalTime, false)
         } catch (e: Exception) {
             if (resetOnError) {
@@ -139,7 +140,7 @@ class Debouncer(
     private fun debugLog(message: String) {
         if (debugMode) {
             val prefix = name?.let { "[$it] " } ?: ""
-            println("$prefix$message at ${System.currentTimeMillis()}")
+            println("$prefix$message at ${Clock.System.now().toEpochMilliseconds()}")
         }
     }
 

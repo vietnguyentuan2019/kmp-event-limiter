@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -53,14 +54,14 @@ class AsyncDebouncer(
      * Returns `null` if the call was cancelled by a newer call.
      */
     suspend fun <T> run(action: suspend () -> T): T? {
-        val startTime = System.currentTimeMillis()
+        val startTime = Clock.System.now().toEpochMilliseconds()
 
         // Skip debounce if disabled
         if (!enabled) {
             debugLog("AsyncDebounce bypassed (disabled)")
             return try {
                 val result = action()
-                val executionTime = (System.currentTimeMillis() - startTime).milliseconds
+                val executionTime = (Clock.System.now().toEpochMilliseconds() - startTime).milliseconds
                 onMetrics?.invoke(executionTime, false)
                 result
             } catch (e: Exception) {
@@ -77,7 +78,7 @@ class AsyncDebouncer(
         // Cancel old call if still running
         if (activeCallId != null) {
             debugLog("AsyncDebounce cancelled previous call")
-            val cancelTime = (System.currentTimeMillis() - startTime).milliseconds
+            val cancelTime = (Clock.System.now().toEpochMilliseconds() - startTime).milliseconds
             onMetrics?.invoke(cancelTime, true)
         }
 
@@ -109,7 +110,7 @@ class AsyncDebouncer(
 
             // Double-check after execution (another call might have started)
             if (currentCallId == latestCallId) {
-                val executionTime = (System.currentTimeMillis() - startTime).milliseconds
+                val executionTime = (Clock.System.now().toEpochMilliseconds() - startTime).milliseconds
                 debugLog("AsyncDebounce completed in ${executionTime.inWholeMilliseconds}ms")
                 onMetrics?.invoke(executionTime, false)
                 activeCallId = null
@@ -155,7 +156,7 @@ class AsyncDebouncer(
     private fun debugLog(message: String) {
         if (debugMode) {
             val prefix = name?.let { "[$it] " } ?: ""
-            println("$prefix$message at ${System.currentTimeMillis()}")
+            println("$prefix$message at ${Clock.System.now().toEpochMilliseconds()}")
         }
     }
 
