@@ -6,6 +6,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.datetime.Clock
 import kotlin.time.Duration
 
 /**
@@ -217,7 +218,7 @@ class ConcurrentAsyncThrottler(
     private fun debugLog(message: String) {
         if (throttler.debugMode) {
             val prefix = throttler.name?.let { "[$it] " } ?: ""
-            println("$prefix$message at ${System.currentTimeMillis()}")
+            println("$prefix$message at ${Clock.System.now().toEpochMilliseconds()}")
         }
     }
 }

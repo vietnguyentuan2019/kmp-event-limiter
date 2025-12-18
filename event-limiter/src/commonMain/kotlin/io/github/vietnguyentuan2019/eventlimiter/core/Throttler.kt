@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -50,7 +51,7 @@ class Throttler(
      * Execute with custom duration for this specific call.
      */
     fun callWithDuration(callback: () -> Unit, customDuration: Duration) {
-        val startTime = System.currentTimeMillis()
+        val startTime = Clock.System.now().toEpochMilliseconds()
 
         // Skip throttle if disabled
         if (!enabled) {
@@ -79,7 +80,7 @@ class Throttler(
     private fun executeCallback(callback: () -> Unit, startTime: Long, executed: Boolean) {
         try {
             callback()
-            val executionTime = (System.currentTimeMillis() - startTime).milliseconds
+            val executionTime = (Clock.System.now().toEpochMilliseconds() - startTime).milliseconds
             onMetrics?.invoke(executionTime, executed)
         } catch (e: Exception) {
             if (resetOnError) {
@@ -135,7 +136,7 @@ class Throttler(
     private fun debugLog(message: String) {
         if (debugMode) {
             val prefix = name?.let { "[$it] " } ?: ""
-            println("$prefix$message at ${System.currentTimeMillis()}")
+            println("$prefix$message at ${Clock.System.now().toEpochMilliseconds()}")
         }
     }
 

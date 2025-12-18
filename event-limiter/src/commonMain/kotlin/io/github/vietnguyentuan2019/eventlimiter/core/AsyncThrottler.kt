@@ -6,8 +6,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.datetime.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Prevents duplicate async operations by locking until operation completes.
@@ -54,14 +56,13 @@ class AsyncThrottler(
      * Execute async operation with throttle lock.
      */
     suspend fun call(action: suspend () -> Unit) {
-        val startTime = System.currentTimeMillis()
-
+        val startTime = Clock.System.now().toEpochMilliseconds()
         // Skip throttle if disabled
         if (!enabled) {
             debugLog("AsyncThrottle bypassed (disabled)")
             try {
                 action()
-                val executionTime = (System.currentTimeMillis() - startTime).milliseconds
+                val executionTime = (Clock.System.now().toEpochMilliseconds() - startTime).milliseconds
                 onMetrics?.invoke(executionTime, true)
             } catch (e: Exception) {
                 if (resetOnError) {
@@ -98,7 +99,7 @@ class AsyncThrottler(
 
         try {
             action()
-            val executionTime = (System.currentTimeMillis() - startTime).milliseconds
+            val executionTime = (Clock.System.now().toEpochMilliseconds() - startTime).milliseconds
             debugLog("AsyncThrottle completed in ${executionTime.inWholeMilliseconds}ms")
             onMetrics?.invoke(executionTime, true)
         } catch (e: Exception) {
@@ -161,7 +162,7 @@ class AsyncThrottler(
     private fun debugLog(message: String) {
         if (debugMode) {
             val prefix = name?.let { "[$it] " } ?: ""
-            println("$prefix$message at ${System.currentTimeMillis()}")
+            println("$prefix$message at ${Clock.System.now().toEpochMilliseconds()}")
         }
     }
 

@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.dp
 import io.github.vietnguyentuan2019.eventlimiter.compose.*
 import io.github.vietnguyentuan2019.eventlimiter.core.ConcurrencyMode
 import kotlinx.coroutines.delay
+import kotlinx.datetime.Clock
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -73,7 +74,7 @@ fun AsyncButtonExample() {
                 // Simulate API call
                 delay(2000)
                 submitCount++
-                lastSubmitTime = System.currentTimeMillis().toString()
+                lastSubmitTime = Clock.System.now().toEpochMilliseconds().toString()
             },
             modifier = Modifier.fillMaxWidth()
         ) { isLoading ->
