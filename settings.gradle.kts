@@ -16,3 +16,5 @@ dependencyResolutionManagement {
 }
 
 include(":event-limiter")
+include(":composeApp")
+include(":androidApp")

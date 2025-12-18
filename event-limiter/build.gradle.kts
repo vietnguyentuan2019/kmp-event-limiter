@@ -6,12 +6,28 @@ plugins {
     id("maven-publish")
 }
 
+android {
+    namespace = "io.github.vietnguyentuan2019.eventlimiter"
+    compileSdk = 35
+
+    defaultConfig {
+        minSdk = 21
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+}
+
 kotlin {
     androidTarget {
         publishLibraryVariants("release")
         compilations.all {
-            kotlinOptions {
-                jvmTarget = "11"
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+                }
             }
         }
     }
@@ -37,6 +53,7 @@ kotlin {
                 implementation(compose.material3)
                 implementation(compose.ui)
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
             }
         }
 
@@ -44,6 +61,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+                implementation("app.cash.turbine:turbine:1.1.0")
             }
         }
 
@@ -75,51 +93,39 @@ kotlin {
     }
 }
 
-android {
-    namespace = "io.github.vietnguyentuan2019.eventlimiter"
-    compileSdk = 35
+afterEvaluate {
+    publishing {
+        publications {
+            withType<MavenPublication> {
+                groupId = "io.github.vietnguyentuan2019"
+                artifactId = "kmp-event-limiter"
+                version = "1.0.0"
 
-    defaultConfig {
-        minSdk = 21
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("release") {
-            groupId = "io.github.vietnguyentuan2019"
-            artifactId = "kmp-event-limiter"
-            version = "1.0.0"
-
-            pom {
-                name.set("KMP Event Limiter")
-                description.set("Production-ready throttle and debounce for Kotlin Multiplatform & Compose Multiplatform")
-                url.set("https://github.com/vietnguyentuan2019/kmp-event-limiter")
-
-                licenses {
-                    license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
-                }
-
-                developers {
-                    developer {
-                        id.set("vietnguyentuan2019")
-                        name.set("Nguyễn Tuấn Việt")
-                        email.set("vietnguyentuan@gmail.com")
-                    }
-                }
-
-                scm {
-                    connection.set("scm:git:git://github.com/vietnguyentuan2019/kmp-event-limiter.git")
-                    developerConnection.set("scm:git:ssh://github.com/vietnguyentuan2019/kmp-event-limiter.git")
+                pom {
+                    name.set("KMP Event Limiter")
+                    description.set("Production-ready throttle and debounce for Kotlin Multiplatform & Compose Multiplatform")
                     url.set("https://github.com/vietnguyentuan2019/kmp-event-limiter")
+
+                    licenses {
+                        license {
+                            name.set("The Apache License, Version 2.0")
+                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id.set("vietnguyentuan2019")
+                            name.set("Nguyễn Tuấn Việt")
+                            email.set("vietnguyentuan@gmail.com")
+                        }
+                    }
+
+                    scm {
+                        connection.set("scm:git:git://github.com/vietnguyentuan2019/kmp-event-limiter.git")
+                        developerConnection.set("scm:git:ssh://github.com/vietnguyentuan2019/kmp-event-limiter.git")
+                        url.set("https://github.com/vietnguyentuan2019/kmp-event-limiter")
+                    }
                 }
             }
         }
