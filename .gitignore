@@ -34,7 +34,30 @@ xcschememanagement.plist
 
 # Credentials and secrets
 CREDENTIALS.md
+DEPLOYMENT.md
 signing-key-base64.txt
 *.gpg
 *.pgp
 *-bundle.zip
+gradle.properties
+secring.gpg
+
+# Session and development notes
+SESSION_SUMMARY.md
+PUBLISHING_CHECKLIST.md
+
+# Internal documentation and strategy
+ROADMAP.md
+PROJECT_OVERVIEW.md
+FEATURE_COMPARISON.md
+GETTING_STARTED.md
+KLIBS_IO_SUBMISSION.md
+RELEASE_NOTES_*.md
+
+# Publishing instructions (contains sensitive info)
+gradle/publish-maven-central.md
+gradle/publish-klibs-io.md
+
+# iOS internal docs
+iosApp/QUICKSTART.md
+iosApp/INTEGRATION_SUMMARY.md

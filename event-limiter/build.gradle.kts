@@ -1,3 +1,5 @@
+import java.util.Base64
+
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
@@ -133,20 +135,20 @@ afterEvaluate {
 
         repositories {
             maven {
-                name = "MavenCentral"
-                url = uri("https://central.sonatype.com/api/v1/publisher/upload")
-                credentials {
-                    username = findProperty("mavenCentralUsername")?.toString()
-                    password = findProperty("mavenCentralPassword")?.toString()
-                }
+                name = "MavenCentralLocal"
+                url = uri(layout.buildDirectory.dir("maven-central-staging"))
             }
         }
     }
 
     // Signing configuration
     signing {
-        // Only sign if credentials are available
-        if (hasProperty("signing.keyId")) {
+        val signingKeyBase64 = findProperty("signing.key")?.toString()
+        val signingPassword = findProperty("signing.password")?.toString() ?: ""
+
+        if (signingKeyBase64 != null) {
+            val signingKey = String(Base64.getDecoder().decode(signingKeyBase64))
+            useInMemoryPgpKeys(signingKey, signingPassword)
             sign(publishing.publications)
         }
     }
