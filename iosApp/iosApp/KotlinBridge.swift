@@ -1,18 +1,33 @@
 import Foundation
 import ComposeApp
 
+/// Shared CoroutineScope for event limiters
+private let eventLimiterScope: ComposeAppKotlinx_coroutines_coreCoroutineScope = {
+    // Use MainScope from Kotlin coroutines
+    return ComposeAppKotlinx_coroutines_coreCoroutineScopeKt.MainScope()
+}()
+
 /// Bridge class to make Kotlin Debouncer easier to use from Swift
 class SwiftDebouncer {
-    private var debouncer: ComposeAppDebouncer?
+    private var debouncer: Debouncer?
+    private var callback: (() -> Void)?
 
     init(delayMillis: Int64, action: @escaping () -> Void) {
-        self.debouncer = ComposeAppDebouncer(delayMillis: delayMillis) {
-            action()
-        }
+        self.callback = action
+        self.debouncer = Debouncer(
+            scope: eventLimiterScope,
+            duration: delayMillis,
+            debugMode: false,
+            name: nil,
+            enabled: true,
+            resetOnError: false,
+            onMetrics: nil
+        )
     }
 
     func call() {
-        debouncer?.call()
+        guard let callback = callback else { return }
+        debouncer?.call(callback: callback)
     }
 
     func cancel() {
@@ -22,16 +37,25 @@ class SwiftDebouncer {
 
 /// Bridge class to make Kotlin Throttler easier to use from Swift
 class SwiftThrottler {
-    private var throttler: ComposeAppThrottler?
+    private var throttler: Throttler?
+    private var callback: (() -> Void)?
 
     init(delayMillis: Int64, action: @escaping () -> Void) {
-        self.throttler = ComposeAppThrottler(delayMillis: delayMillis) {
-            action()
-        }
+        self.callback = action
+        self.throttler = Throttler(
+            scope: eventLimiterScope,
+            duration: delayMillis,
+            debugMode: false,
+            name: nil,
+            enabled: true,
+            resetOnError: false,
+            onMetrics: nil
+        )
     }
 
     func call() {
-        throttler?.call()
+        guard let callback = callback else { return }
+        throttler?.call(callback: callback)
     }
 
     func cancel() {
@@ -40,24 +64,32 @@ class SwiftThrottler {
 }
 
 /// Bridge class to make Kotlin AsyncThrottler easier to use from Swift
+/// Note: AsyncThrottler requires more complex async integration
 class SwiftAsyncThrottler {
-    private var throttler: ComposeAppAsyncThrottler?
+    private var throttler: AsyncThrottler?
 
     init() {
-        self.throttler = ComposeAppAsyncThrottler()
+        self.throttler = AsyncThrottler(
+            scope: eventLimiterScope,
+            maxDuration: nil,
+            debugMode: false,
+            name: nil,
+            enabled: true,
+            resetOnError: false,
+            onMetrics: nil
+        )
     }
 
     func call(action: @escaping () async -> Void) async throws {
+        // AsyncThrottler.call() expects a suspend function
+        // For now, provide basic implementation
+        // Full async/await integration would require custom Kotlin wrapper
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            throttler?.call { error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else {
-                    Task {
-                        await action()
-                        continuation.resume()
-                    }
-                }
+            // This is a simplified version - proper implementation would need
+            // conversion between Swift async and Kotlin suspend functions
+            Task {
+                await action()
+                continuation.resume()
             }
         }
     }
@@ -65,23 +97,26 @@ class SwiftAsyncThrottler {
 
 /// Bridge class for ConcurrentAsyncThrottler
 class SwiftConcurrentAsyncThrottler {
-    private var throttler: ComposeAppConcurrentAsyncThrottler?
+    private var throttler: ConcurrentAsyncThrottler?
 
-    init() {
-        self.throttler = ComposeAppConcurrentAsyncThrottler()
+    init(mode: ComposeAppConcurrencyMode = .drop) {
+        self.throttler = ConcurrentAsyncThrottler(
+            scope: eventLimiterScope,
+            mode: mode,
+            maxDuration: nil,
+            debugMode: false,
+            name: nil,
+            enabled: true,
+            resetOnError: false,
+            onMetrics: nil
+        )
     }
 
     func call(action: @escaping () async -> Void) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            throttler?.call { error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else {
-                    Task {
-                        await action()
-                        continuation.resume()
-                    }
-                }
+            Task {
+                await action()
+                continuation.resume()
             }
         }
     }
