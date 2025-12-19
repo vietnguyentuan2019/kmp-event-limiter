@@ -156,69 +156,76 @@ The Swift views currently have placeholder implementations. To integrate the act
 
 ### Example: Debouncer Integration
 
-**Note:** The Kotlin classes are exported with a `ComposeApp` prefix.
-
-```swift
-import ComposeApp
-
-class SearchDemoViewModel: ObservableObject {
-    private var debouncer: ComposeAppDebouncer?
-
-    init() {
-        // Create debouncer with 300ms delay
-        debouncer = ComposeAppDebouncer(delayMillis: 300) { [weak self] in
-            self?.performSearch()
-        }
-    }
-
-    func search(query: String) {
-        searchText = query
-        // Call debouncer instead of performSearch directly
-        debouncer?.call()
-    }
-
-    private func performSearch() {
-        // Actual search logic
-    }
-}
-```
-
-**Or use the SwiftDebouncer bridge class** (recommended for cleaner code):
+**Recommended: Use the SwiftDebouncer bridge class** for cleaner code:
 
 ```swift
 class SearchDemoViewModel: ObservableObject {
     private var debouncer: SwiftDebouncer?
 
     init() {
+        // Create debouncer with 300ms delay
         debouncer = SwiftDebouncer(delayMillis: 300) {
             self.performSearch()
         }
     }
 
     func search(query: String) {
+        // Call debouncer - will only execute after 300ms of inactivity
         debouncer?.call()
+    }
+
+    private func performSearch() {
+        // Actual search implementation
+    }
+}
+```
+
+**Direct Kotlin API usage** (if needed):
+
+```swift
+import ComposeApp
+
+class SearchDemoViewModel: ObservableObject {
+    private var debouncer: Debouncer?
+    private let scope = ComposeAppKotlinx_coroutines_coreCoroutineScopeKt.MainScope()
+
+    init() {
+        debouncer = Debouncer(
+            scope: scope,
+            duration: 300,
+            debugMode: false,
+            name: nil,
+            enabled: true,
+            resetOnError: false,
+            onMetrics: nil
+        )
+    }
+
+    func search(query: String) {
+        debouncer?.call {
+            self.performSearch()
+        }
     }
 }
 ```
 
 ### Example: Throttler Integration
 
-```swift
-import ComposeApp
+**Recommended: Use SwiftThrottler:**
 
+```swift
 class InfiniteScrollViewModel: ObservableObject {
-    private var throttler: ComposeAppThrottler?
+    private var throttler: SwiftThrottler?
 
     init() {
         // Create throttler with 2000ms delay
-        throttler = ComposeAppThrottler(delayMillis: 2000) { [weak self] in
-            self?.performLoad()
+        throttler = SwiftThrottler(delayMillis: 2000) {
+            self.performLoad()
         }
     }
 
     func loadMore() {
-        loadAttempts += 1
-        // Call throttler instead of performLoad directly
+        // Call throttler - executes immediately, then blocks for 2s
         throttler?.call()
     }
 
@@ -228,36 +235,21 @@ class InfiniteScrollViewModel: ObservableObject {
 }
 ```
 
-### Example: AsyncThrottler Integration
+### Important Notes
 
-```swift
-import ComposeApp
+1. **CoroutineScope**: The bridge classes use a shared `MainScope()` internally
+2. **Thread Safety**: All callbacks execute on the main thread via Kotlin's MainScope
+3. **Memory Management**: Bridge classes properly manage Kotlin object lifecycle
+4. **Callback Storage**: Bridge classes store Swift closures and pass them to Kotlin on each call
 
-class PaymentDemoViewModel: ObservableObject {
-    private var asyncThrottler: AsyncThrottler?
+### API Changes from Direct Kotlin
 
-    init() {
-        asyncThrottler = AsyncThrottlerKt.AsyncThrottler()
-    }
+The new Kotlin/Native API requires:
+- A `CoroutineScope` parameter in constructors
+- Callbacks passed to `call()` method instead of constructor
+- Multiple optional parameters (debugMode, name, enabled, etc.)
 
-    func processPayment() async {
-        attemptCount += 1
-
-        do {
-            try await asyncThrottler?.call {
-                // Payment processing logic
-                await self.performPaymentProcessing()
-            }
-        } catch {
-            blockedCount += 1
-        }
-    }
-
-    private func performPaymentProcessing() async {
-        // Actual payment logic
-    }
-}
-```
+The SwiftDebouncer/SwiftThrottler bridge classes hide this complexity and provide a cleaner Swift API.
 
 ## Building for Device
 
