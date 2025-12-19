@@ -2,9 +2,9 @@ import Foundation
 import ComposeApp
 
 /// Shared CoroutineScope for event limiters
-private let eventLimiterScope: ComposeAppKotlinx_coroutines_coreCoroutineScope = {
-    // Use MainScope from Kotlin coroutines
-    return ComposeAppKotlinx_coroutines_coreCoroutineScopeKt.MainScope()
+/// Uses Main dispatcher to ensure callbacks run on main thread
+private let eventLimiterScope: Kotlinx_coroutines_coreCoroutineScope = {
+    return ScopeHelperKt.createEventLimiterScope()
 }()
 
 /// Bridge class to make Kotlin Debouncer easier to use from Swift
@@ -99,7 +99,7 @@ class SwiftAsyncThrottler {
 class SwiftConcurrentAsyncThrottler {
     private var throttler: ConcurrentAsyncThrottler?
 
-    init(mode: ComposeAppConcurrencyMode = .drop) {
+    init(mode: ConcurrencyMode = .drop) {
         self.throttler = ConcurrentAsyncThrottler(
             scope: eventLimiterScope,
             mode: mode,
