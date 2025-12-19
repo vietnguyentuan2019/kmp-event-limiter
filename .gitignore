@@ -25,6 +25,16 @@ SESSION_SUMMARY.md
 # Xcode
 *.xcuserdata
 *.xcworkspace/xcuserdata/
+xcuserdata/
 DerivedData/
 *.xccheckout
 *.moved-aside
+*.xcuserstate
+xcschememanagement.plist
+
+# Credentials and secrets
+CREDENTIALS.md
+signing-key-base64.txt
+*.gpg
+*.pgp
+*-bundle.zip

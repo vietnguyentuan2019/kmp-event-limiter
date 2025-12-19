@@ -1,6 +1,7 @@
 package io.github.vietnguyentuan2019.eventlimiter.core
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -32,6 +33,7 @@ import kotlin.time.Duration
  * scope.launch { chatSender.call { sendMessage("!") } }
  * ```
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class ConcurrentAsyncThrottler(
     private val scope: CoroutineScope,
     val mode: ConcurrencyMode = ConcurrencyMode.DROP,
