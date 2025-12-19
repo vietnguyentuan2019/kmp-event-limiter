@@ -4,6 +4,7 @@ plugins {
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
     id("maven-publish")
+    signing
 }
 
 android {
@@ -128,6 +129,25 @@ afterEvaluate {
                     }
                 }
             }
+        }
+
+        repositories {
+            maven {
+                name = "MavenCentral"
+                url = uri("https://central.sonatype.com/api/v1/publisher/upload")
+                credentials {
+                    username = findProperty("mavenCentralUsername")?.toString()
+                    password = findProperty("mavenCentralPassword")?.toString()
+                }
+            }
+        }
+    }
+
+    // Signing configuration
+    signing {
+        // Only sign if credentials are available
+        if (hasProperty("signing.keyId")) {
+            sign(publishing.publications)
         }
     }
 }
