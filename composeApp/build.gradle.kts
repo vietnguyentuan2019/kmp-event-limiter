@@ -27,6 +27,8 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+            // Export event-limiter classes to iOS
+            export(project(":event-limiter"))
         }
     }
 
@@ -34,6 +36,10 @@ kotlin {
         val desktopMain by getting
         val iosMain by creating {
             dependsOn(commonMain.get())
+            dependencies {
+                // Export event-limiter for iOS
+                api(project(":event-limiter"))
+            }
         }
         val iosX64Main by getting {
             dependsOn(iosMain)

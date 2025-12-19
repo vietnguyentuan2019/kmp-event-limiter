@@ -3,10 +3,10 @@ import ComposeApp
 
 /// Bridge class to make Kotlin Debouncer easier to use from Swift
 class SwiftDebouncer {
-    private var debouncer: Debouncer?
+    private var debouncer: ComposeAppDebouncer?
 
     init(delayMillis: Int64, action: @escaping () -> Void) {
-        self.debouncer = Debouncer(delayMillis: delayMillis) {
+        self.debouncer = ComposeAppDebouncer(delayMillis: delayMillis) {
             action()
         }
     }
@@ -22,10 +22,10 @@ class SwiftDebouncer {
 
 /// Bridge class to make Kotlin Throttler easier to use from Swift
 class SwiftThrottler {
-    private var throttler: Throttler?
+    private var throttler: ComposeAppThrottler?
 
     init(delayMillis: Int64, action: @escaping () -> Void) {
-        self.throttler = Throttler(delayMillis: delayMillis) {
+        self.throttler = ComposeAppThrottler(delayMillis: delayMillis) {
             action()
         }
     }
@@ -41,10 +41,10 @@ class SwiftThrottler {
 
 /// Bridge class to make Kotlin AsyncThrottler easier to use from Swift
 class SwiftAsyncThrottler {
-    private var throttler: AsyncThrottler?
+    private var throttler: ComposeAppAsyncThrottler?
 
     init() {
-        self.throttler = AsyncThrottler()
+        self.throttler = ComposeAppAsyncThrottler()
     }
 
     func call(action: @escaping () async -> Void) async throws {
@@ -65,10 +65,10 @@ class SwiftAsyncThrottler {
 
 /// Bridge class for ConcurrentAsyncThrottler
 class SwiftConcurrentAsyncThrottler {
-    private var throttler: ConcurrentAsyncThrottler?
+    private var throttler: ComposeAppConcurrentAsyncThrottler?
 
     init() {
-        self.throttler = ConcurrentAsyncThrottler()
+        self.throttler = ComposeAppConcurrentAsyncThrottler()
     }
 
     func call(action: @escaping () async -> Void) async throws {

@@ -156,15 +156,17 @@ The Swift views currently have placeholder implementations. To integrate the act
 
 ### Example: Debouncer Integration
 
+**Note:** The Kotlin classes are exported with a `ComposeApp` prefix.
+
 ```swift
 import ComposeApp
 
 class SearchDemoViewModel: ObservableObject {
-    private var debouncer: Debouncer?
+    private var debouncer: ComposeAppDebouncer?
 
     init() {
         // Create debouncer with 300ms delay
-        debouncer = DebouncerKt.Debouncer(delayMillis: 300) { [weak self] in
+        debouncer = ComposeAppDebouncer(delayMillis: 300) { [weak self] in
             self?.performSearch()
         }
     }
@@ -181,17 +183,35 @@ class SearchDemoViewModel: ObservableObject {
 }
 ```
 
+**Or use the SwiftDebouncer bridge class** (recommended for cleaner code):
+
+```swift
+class SearchDemoViewModel: ObservableObject {
+    private var debouncer: SwiftDebouncer?
+
+    init() {
+        debouncer = SwiftDebouncer(delayMillis: 300) {
+            self.performSearch()
+        }
+    }
+
+    func search(query: String) {
+        debouncer?.call()
+    }
+}
+```
+
 ### Example: Throttler Integration
 
 ```swift
 import ComposeApp
 
 class InfiniteScrollViewModel: ObservableObject {
-    private var throttler: Throttler?
+    private var throttler: ComposeAppThrottler?
 
     init() {
         // Create throttler with 2000ms delay
-        throttler = ThrottlerKt.Throttler(delayMillis: 2000) { [weak self] in
+        throttler = ComposeAppThrottler(delayMillis: 2000) { [weak self] in
             self?.performLoad()
         }
     }
