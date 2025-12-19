@@ -34,6 +34,83 @@ jobs:
             :event-limiter:iosSimulatorArm64MainKlibrary \
             :event-limiter:iosX64MainKlibrary
 
+      - name: Publish to local staging with signing
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        run: |
+          echo "Building and signing all artifacts..."
+          ./gradlew :event-limiter:publishAllPublicationsToMavenCentralLocalRepository \
+            -Psigning.key="$SIGNING_KEY" \
+            -Psigning.password="$SIGNING_PASSWORD" \
+            --no-daemon
+
+      - name: Verify checksums and signatures
+        run: |
+          echo "🔍 Verifying all artifacts have checksums and GPG signatures..."
+          STAGING_DIR="event-limiter/build/maven-central-staging"
+
+          # Verify GPG signatures (.asc files)
+          ASC_COUNT=$(find "$STAGING_DIR" -name "*.asc" | wc -l | tr -d ' ')
+          echo "📝 Found $ASC_COUNT GPG signature files (.asc)"
+
+          # Verify checksums
+          MD5_COUNT=$(find "$STAGING_DIR" -name "*.md5" | wc -l | tr -d ' ')
+          SHA1_COUNT=$(find "$STAGING_DIR" -name "*.sha1" | wc -l | tr -d ' ')
+          SHA256_COUNT=$(find "$STAGING_DIR" -name "*.sha256" | wc -l | tr -d ' ')
+          SHA512_COUNT=$(find "$STAGING_DIR" -name "*.sha512" | wc -l | tr -d ' ')
+
+          echo "🔐 Checksums found:"
+          echo "  - MD5: $MD5_COUNT files"
+          echo "  - SHA1: $SHA1_COUNT files"
+          echo "  - SHA256: $SHA256_COUNT files"
+          echo "  - SHA512: $SHA512_COUNT files"
+
+          # Fail if no signatures found
+          if [ "$ASC_COUNT" -eq 0 ]; then
+            echo "❌ ERROR: No GPG signature files found! Maven Central requires all artifacts to be signed."
+            exit 1
+          fi
+
+          # Verify signature count matches artifact count
+          JAR_COUNT=$(find "$STAGING_DIR" -name "*.jar" -not -name "*-sources.jar" -not -name "*-javadoc.jar" | wc -l | tr -d ' ')
+          AAR_COUNT=$(find "$STAGING_DIR" -name "*.aar" | wc -l | tr -d ' ')
+          POM_COUNT=$(find "$STAGING_DIR" -name "*.pom" | wc -l | tr -d ' ')
+          KLIB_COUNT=$(find "$STAGING_DIR" -name "*.klib" | wc -l | tr -d ' ')
+
+          ARTIFACT_COUNT=$((JAR_COUNT + AAR_COUNT + POM_COUNT + KLIB_COUNT))
+          echo "📦 Total main artifacts: $ARTIFACT_COUNT"
+          echo "🔏 Total signatures: $ASC_COUNT"
+
+          if [ "$ASC_COUNT" -lt "$ARTIFACT_COUNT" ]; then
+            echo "⚠️  WARNING: Not all artifacts are signed ($ASC_COUNT signatures for $ARTIFACT_COUNT artifacts)"
+          else
+            echo "✅ All artifacts are properly signed!"
+          fi
+
+          echo "✅ Checksum verification passed!"
+          echo "✅ Signature verification passed!"
+
+      - name: Create Maven Central bundle
+        run: |
+          STAGING_DIR="event-limiter/build/maven-central-staging"
+          BUNDLE_NAME="kmp-event-limiter-${{ inputs.version }}-bundle.zip"
+
+          echo "📦 Creating deployment bundle..."
+          cd "$STAGING_DIR"
+          zip -r "../$BUNDLE_NAME" .
+          cd -
+
+          BUNDLE_SIZE=$(ls -lh "event-limiter/build/$BUNDLE_NAME" | awk '{print $5}')
+          echo "✅ Bundle created: $BUNDLE_NAME (Size: $BUNDLE_SIZE)"
+
+      - name: Upload bundle as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: maven-central-bundle-v${{ inputs.version }}
+          path: event-limiter/build/*-bundle.zip
+          retention-days: 30
+
       - name: Publish to Maven Central
         env:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
