@@ -61,3 +61,4 @@ gradle/publish-klibs-io.md
 # iOS internal docs
 iosApp/QUICKSTART.md
 iosApp/INTEGRATION_SUMMARY.md
+MAVEN_CENTRAL_SETUP.md
